@@ -1,22 +1,46 @@
+import math  # Add math import for ceil and log2 if needed, or use bit_length
+
 class DFA:
     def __init__(self, dfa=None, filename=None):
         if dfa is not None:
-            self.dfa = dfa
-            self.current_state = dfa['q0']
-            self.accepting_states = set(dfa['F'])
-            self.transition_functions = dfa['δ']
-            self.states = set(dfa['Q'])
-            self.input_alphabet = set(dfa['Σ'])
-            self.path = []
+            self.dfa_def = dfa # Store the definition
+            # self.current_state = dfa['q0'] # Initial current_state is set from dfa_def later
+            # self.accepting_states = set(dfa['F'])
+            # self.transition_functions = dfa['δ']
+            # self.states = set(dfa['Q'])
+            # self.input_alphabet = set(dfa['Σ'])
+            # self.path = []
         else:
-            self.dfa = self.take_dfa(filename=filename)
-        self.current_state = self.dfa['q0']
-        self.accepting_states = set(self.dfa['F'])
-        self.transition_functions = self.dfa['δ']
-        self.states = set(self.dfa['Q'])
-        self.input_alphabet = set(self.dfa['Σ'])
+            self.dfa_def = self.take_dfa(filename=filename) # dfa_def is a dictionary
+        
+        self.states = set(self.dfa_def['Q'])
+        self.input_alphabet = set(self.dfa_def['Σ'])
+        self.transition_functions = self.dfa_def['δ']
+        self.initial_state = self.dfa_def['q0'] # Use a consistent name
+        self.accepting_states = set(self.dfa_def['F'])
+        
+        self.current_state = self.initial_state # Set current_state for simulation
         self.path = []
         self.max_intensity = 3
+
+        # Generate state encodings
+        self.state_encoding = {}
+        self.state_decoding = {} # Optional: for debugging or if needed later
+        
+        sorted_states = sorted(list(self.states))
+        if not sorted_states:
+            num_bits = 0
+        elif len(sorted_states) == 1:
+            num_bits = 1 # Represent single state as '0'
+        else:
+            num_bits = (len(sorted_states) - 1).bit_length()
+
+        for i, state_name in enumerate(sorted_states):
+            encoded_name = format(i, f'0{num_bits}b') if num_bits > 0 else '0' # handle num_bits=0 for single state
+            if not sorted_states and not num_bits: # if there are no states
+                 encoded_name = "ERROR_NO_STATES" # Should not happen with valid DFA
+            self.state_encoding[state_name] = encoded_name
+            self.state_decoding[encoded_name] = state_name
         
     def take_dfa(self, filename=None):
         """
@@ -106,13 +130,17 @@ class DFA:
                 'q0': take_q0(),
                 'F': F
             }
-    def print(self):
+    def print_dfa(self):
         print("DFA Description:")
         print(f"States (Q): {self.states}")
         print(f"Input Alphabet (Σ): {self.input_alphabet}")
         print(f"Transition Function (δ): {self.transition_functions}")
-        print(f"Initial State (q0): {self.current_state}")
+        print(f"Initial State (q0): {self.initial_state}") # Changed from self.current_state
         print(f"Accepting States (F): {self.accepting_states}")
+        if hasattr(self, 'state_encoding') and self.state_encoding:
+            print("State Encodings:")
+            for original, encoded in self.state_encoding.items():
+                print(f"  {original} -> {encoded}")
     
     def _dfa_step(self, current_state, symbol):
         """Return the next state for a given state and symbol, or None if invalid."""
@@ -136,17 +164,24 @@ class DFA:
                     self.edge_intensity[(state, symbol)] = self.max_intensity+1
         return next_possible_ids
 
-    def _dfa_svg_frame(self, state, node_intensity, path, idx):
+    def _dfa_svg_frame(self, current_processing_state_original, node_intensity, path_original_states, idx):
         from graphviz import Digraph
         dot = Digraph(format='svg')
         dot.attr(rankdir='LR', bgcolor='white')
-        for s in self.states:
-            if s in self.accepting_states:
+
+        # Use encoded names for nodes
+        for s_orig in self.states:
+            s_encoded = self.state_encoding.get(s_orig, str(s_orig)) # Fallback to original if not found
+            
+            if s_orig in self.accepting_states:
                 shape = 'doublecircle'
             else:
                 shape = 'circle'
-            intensity = node_intensity[s]
-            if s == state:
+            
+            intensity = node_intensity[s_orig] # Intensity is keyed by original state name
+            
+            # Highlighting based on the original name of the current processing state
+            if s_orig == current_processing_state_original:
                 color = '#ffd700'  # gold for current state
                 fontcolor = 'black'
                 style = 'filled,bold'
@@ -163,12 +198,21 @@ class DFA:
                 color = 'lightgray'
                 fontcolor = 'black'
                 style = ''
-            dot.node(s, shape=shape, color=color, style=style, fontcolor=fontcolor, fontsize='18')
-        dot.node('start', shape='point', color='white')
-        dot.edge('start', self.dfa['q0'], color='blue', penwidth='2')
-        # Edge coloring by intensity
-        for (src, symbol), dst in self.transition_functions.items():
-            intensity = self.edge_intensity.get((src, symbol), 0)
+            # Node label can be the original name or the encoded one. Let's use encoded for compactness.
+            # If original name is desired on the node, use s_orig as label.
+            dot.node(s_encoded, label=s_encoded, shape=shape, color=color, style=style, fontcolor=fontcolor, fontsize='18')
+
+        if self.initial_state in self.state_encoding: # Check if initial_state is encodable
+            encoded_initial_state = self.state_encoding[self.initial_state]
+            dot.node('start', shape='point', color='white') # Keep 'start' node as is
+            dot.edge('start', encoded_initial_state, color='blue', penwidth='2')
+        
+        # Edge coloring by intensity, using encoded state names for src/dst
+        for (src_orig, symbol), dst_orig in self.transition_functions.items():
+            src_encoded = self.state_encoding.get(src_orig, str(src_orig))
+            dst_encoded = self.state_encoding.get(dst_orig, str(dst_orig))
+            
+            intensity = self.edge_intensity.get((src_orig, symbol), 0) # Intensity keyed by original
             if intensity == self.max_intensity:
                 color = '#b71c1c'  # dark red
             elif intensity == self.max_intensity-1:
@@ -179,7 +223,8 @@ class DFA:
                 color = 'black'
             penwidth = '3' if intensity > 0 else '1'
             fontcolor = 'red' if intensity > 0 else 'black'
-            dot.edge(src, dst, label=symbol, color=color, penwidth=penwidth, fontcolor=fontcolor, fontsize='16')
+            dot.edge(src_encoded, dst_encoded, label=symbol, color=color, penwidth=penwidth, fontcolor=fontcolor, fontsize='16')
+            
         return dot.pipe().decode('utf-8')
 
     def _dfa_input_visuals(self, possible_ids):
@@ -201,9 +246,15 @@ class DFA:
                 f"</div>"
             )
         return '<br/>'.join(visuals)
-
+        
     def _dfa_html(self, svg_frames, input_visuals, accepted, path):
         accepted_str = "ACCEPTED" if accepted else "REJECTED"
+        
+        # Generate encoding table rows
+        encoding_table_rows = ""
+        for encoded, original in sorted(self.state_decoding.items()):
+            encoding_table_rows += f"<tr><td>{encoded}</td><td>{original}</td></tr>\n"
+        
         html = (
             '<html>\n'
             '<head>\n'
@@ -212,12 +263,20 @@ class DFA:
             '    <style>\n'
             '        body {{ background: #222; color: #eee; font-family: sans-serif; }}\n'
             '        #svgbox {{ width: 80vw; height: 60vh; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0003; display: block; margin: 0 auto; overflow: auto; }}\n'
+            '        #encoding-table {{ width: 80vw; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0003; margin: 20px auto; overflow: auto; color: #333; padding: 15px; }}\n'
             '        .controls {{ margin: 1em 0; text-align: center; }}\n'
             '        .inputvis {{ text-align: center; margin: 1em 0 0.5em 0; }}\n'
             '        .accept {{ color: #4caf50; font-weight: bold; }}\n'
             '        .reject {{ color: #e53935; font-weight: bold; }}\n'
             '        span {{ font-size: 1.2em; }}\n'
-            '        h1 {{ text-align: center; font-size: 1.5em; }}\n'
+            '        h1, h2 {{ text-align: center; }}\n'
+            '        h1 {{ font-size: 1.5em; }}\n'
+            '        h2 {{ font-size: 1.2em; margin-top: 0; color: #333; }}\n'
+            '        table {{ width: 100%; border-collapse: collapse; }}\n'
+            '        th, td {{ padding: 8px; text-align: center; border-bottom: 1px solid #333; }}\n'
+            '        th {{ background-color: #4caf50; color: white; }}\n'
+            '        td {{ color: #333; font-weight: bold; }}\n'
+            '        tr:hover {{ background-color: #f5f5f5; }}\n'
             '    </style>\n'
             '</head>\n'
             '<body>\n'
@@ -229,6 +288,13 @@ class DFA:
             '    <div class="inputvis" id="inputvis">{}</div>\n'
             '    <div class="controls" id="result" style="display:none;">\n'
             '        <span class="{}">String {} by Machine</span>\n'
+            '    </div>\n'
+            '    <div id="encoding-table">\n'
+            '        <h2>State Encodings</h2>\n'
+            '        <table>\n'
+            '            <tr><th>Binary Code</th><th>State Name</th></tr>\n'
+            '            {}\n'
+            '        </table>\n'
             '    </div>\n'
             '    <script>\n'
             '        const frames = [\n{}\n        ];\n'
@@ -258,13 +324,13 @@ class DFA:
             '        autoPlay();\n'
             '    </script>\n'
             '</body>\n'
-            '</html>'
-        ).format(
+            '</html>'        ).format(
             len(svg_frames),
             svg_frames[0],
             input_visuals[0],
             'accept' if accepted else 'reject',
             "ACCEPTED" if accepted else "REJECTED",
+            encoding_table_rows,  # Place encoding table rows here
             ',\n'.join([repr(s) for s in svg_frames]),
             ',\n'.join([repr(s) for s in input_visuals])
         )
@@ -276,50 +342,88 @@ class DFA:
         self.input_string = in_string
         self.input_length = len(in_string)
         self.edge_intensity = {(src, symbol): 0 for (src, symbol) in self.transition_functions}
-        initial_id = (self.dfa['q0'], in_string)
+        
+        # Initial ID uses the original initial state name
+        initial_id = (self.initial_state, in_string)
         self.ids.append(initial_id)
-        possible_ids = [initial_id]
+        
+        possible_ids = [initial_id] # Contains original state names
         svg_frames = []
         input_visuals = []
-        node_intensity = {s: 0 for s in self.states}
+        node_intensity = {s: 0 for s in self.states} # Keyed by original state names
         accept_found = False
-        accept_state = None
+        accept_state_original = None # Store original name of accepting state
+        
+        prev_ids = [] # Contains original state names
+
         while possible_ids:
-            # Check for accept
-            for state, rem in possible_ids:
-                if rem == '' and state in self.accepting_states:
+            # Check for accept using original state names
+            for state_orig, rem in possible_ids:
+                if rem == '' and state_orig in self.accepting_states:
                     accept_found = True
-                    accept_state = state
+                    accept_state_original = state_orig
                     break
             if accept_found:
                 break
-            # Update node and edge intensity for all current possible states and edges
-            for s in node_intensity:
-                if node_intensity[s] > 0:
-                    node_intensity[s] -= 1
-            for k in self.edge_intensity:
-                if self.edge_intensity[k] > 0:
-                    self.edge_intensity[k] -= 1
-            for state, rem in possible_ids:
-                node_intensity[state] = self.max_intensity
-            # Visualize all current possible states
-            svg_frames.append(self._dfa_svg_frame(possible_ids[0][0], node_intensity, [pid[0] for pid in possible_ids], 0))
-            input_visuals.append(self._dfa_input_visuals(possible_ids))
-            # Step
+            
+            # Update node and edge intensity (keyed by original names)
+            for s_orig_intensity in node_intensity:
+                if node_intensity[s_orig_intensity] > 0:
+                    node_intensity[s_orig_intensity] -= 1
+            for k_orig_intensity in self.edge_intensity:
+                if self.edge_intensity[k_orig_intensity] > 0:
+                    self.edge_intensity[k_orig_intensity] -= 1
+            for state_orig, rem in possible_ids:
+                node_intensity[state_orig] = self.max_intensity
+            
+            # Determine current state for SVG frame (original name)
+            current_display_state_original = possible_ids[0][0] if possible_ids else self.initial_state
+            
+            # Generate SVG frame: pass original state name for highlighting logic
+            # path argument to _dfa_svg_frame is [pid[0] for pid in possible_ids] - these are original names
+            svg_frames.append(self._dfa_svg_frame(current_display_state_original, node_intensity, [pid[0] for pid in possible_ids], len(svg_frames)))
+            input_visuals.append(self._dfa_input_visuals(possible_ids)) # Uses original names for display
+            
+            # Step (uses original names internally)
             next_possible_ids = self._dfa_run(possible_ids)
             prev_ids = possible_ids
             possible_ids = next_possible_ids
         accepted = accept_found
+        
         # Final frame for accept/reject
-        svg_frames.append(self._dfa_svg_frame(accept_state if accept_found else svg_frames[-1], node_intensity, [pid[0] for pid in possible_ids], 0))
-        input_visuals.append(self._dfa_input_visuals(prev_ids))
-        html = self._dfa_html(svg_frames, input_visuals, accepted, [pid[0] for pid in possible_ids])
+        # Determine final display state (original name)
+        final_display_state_original = self.initial_state # Default
+        if accepted and accept_state_original:
+            final_display_state_original = accept_state_original
+        elif prev_ids: # If not accepted but there were previous states
+            final_display_state_original = prev_ids[0][0]
+        
+        # Update node_intensity for the final frame (keyed by original names)
+        if accepted and accept_state_original:
+            node_intensity[accept_state_original] = self.max_intensity
+        elif final_display_state_original in node_intensity : # Check if it's a valid state
+             node_intensity[final_display_state_original] = self.max_intensity
+
+
+        # Path for the final frame (original names)
+        final_frame_path_originals = [pid[0] for pid in prev_ids if prev_ids] if not accepted else [accept_state_original] if accept_state_original else []
+
+        svg_frames.append(self._dfa_svg_frame(final_display_state_original, node_intensity, final_frame_path_originals, len(svg_frames)))
+        
+        # Input visuals for the final frame
+        # If accepted, the input is fully processed. If rejected, it's the state of prev_ids.
+        final_input_visual_ids = prev_ids if not accepted and prev_ids else [(accept_state_original, '')] if accepted and accept_state_original else [(final_display_state_original, '')] if not prev_ids and not possible_ids else possible_ids
+
+        input_visuals.append(self._dfa_input_visuals(final_input_visual_ids)) 
+        
+        html = self._dfa_html(svg_frames, input_visuals, accepted, [pid[0] for pid in self.ids]) # path for html can be original
+        
         if not os.path.exists(index_dir):
             os.makedirs(index_dir)
         index_path = os.path.join(index_dir, 'index.html')
         with open(index_path, 'w', encoding='utf-8') as f:
             f.write(html)
-        return {'html_path': index_path, 'accepted': accepted, 'path': self.ids}
+        return {'html_path': index_path, 'accepted': accepted, 'path': self.ids} # self.ids contains original state names
 
 
 __main__ = '__main__'

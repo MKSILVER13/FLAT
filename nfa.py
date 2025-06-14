@@ -26,7 +26,8 @@ class NFA(DFA): # Inherit from DFA
         # Convert NFA to DFA and initialize DFA part
         dfa_definition = self.to_dfa()
         super().__init__(dfa=dfa_definition) # Initialize DFA parent class
-
+        # self.print_nfa()  # Print NFA details for debugging
+        # self.print_dfa()  # Print DFA details for debugging
     def load_nfa(self, filename):
         """
         Load NFA definition from file similar to DFA format: Q, Σ, δ, q0, F sections ending with '#'.
