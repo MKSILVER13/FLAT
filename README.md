@@ -95,7 +95,7 @@ Comments can be added using `//` at the start of a line.
 The scripts primarily generate `index.html` files within specific directories (e.g., `dfa_video_frames/`, `nfa_to_dfa_video_frames/`, `regex_sim_output/`). These files contain the animated SVG visualizations.
 
 ### File Structure
-\`\`\`
+```
 .
 ├── dfa.py                  # DFA logic
 ├── nfa.py                  # NFA logic (incl. conversion)
@@ -105,7 +105,7 @@ The scripts primarily generate `index.html` files within specific directories (e
 ├── *.txt                   # Example input files
 ├── */index.html            # Output visualization files
 └── README.md               # This file
-\`\`\`
+```
 
 ---
 
