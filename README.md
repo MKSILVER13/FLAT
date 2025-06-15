@@ -108,14 +108,47 @@ The project includes a web-based user interface that allows you to:
 
 ### Starting the Web Interface
 
-1. Ensure you have all dependencies installed.
-2. Double-click `start_server.bat` or run:
-   ```bash
+1. Ensure you have all dependencies installed:
+   - Python 3.x
+   - Graphviz (system installation with PATH configuration)
+   - Required Python packages (`pip install -r requirements.txt`)
+
+2. Open a terminal (PowerShell or Command Prompt) and navigate to the project directory:
+   ```
+   cd "C:\path\to\project\folder"
+   ```
+
+3. Start the server by running:
+   ```
    python server.py
    ```
-3. The server will start and automatically open a browser window to http://localhost:8000/
-4. Use the tabs to switch between DFA, NFA, and Regex input modes.
-5. After submitting your input, click "View Visualization" to see the result.
+
+4. The server will start on port 8000. Open a browser and go to:
+   ```
+   http://localhost:8000/
+   ```
+
+5. Use the tabs to switch between DFA, NFA, and Regex input modes.
+
+6. After submitting your input, click "View Visualization" to see the result.
+
+### Troubleshooting
+
+If you encounter issues with Graphviz:
+
+1. Ensure Graphviz is installed from [graphviz.org/download](https://graphviz.org/download/)
+2. During installation, select the option to add Graphviz to your system PATH
+3. After installation, **restart your terminal** (important!)
+4. Verify the installation by running:
+   ```
+   dot -V
+   ```
+   This should show the Graphviz version information
+
+5. If Graphviz is installed but not in your PATH, you'll need to add it manually:
+   - Find where Graphviz is installed (typically `C:\Program Files\Graphviz\bin`)
+   - Add this location to your system PATH environment variable
+   - Restart your terminal and try again
 
 ---
 
