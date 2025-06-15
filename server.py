@@ -42,15 +42,15 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
             response = self.handle_nfa(data)
         elif self.path == '/api/process_regex':
             response = self.handle_regex(data)
-        
-        # Send response headers
+          # Send response headers
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         
         # Send response content
         self.wfile.write(json.dumps(response).encode('utf-8'))
-      def handle_dfa(self, data):
+    
+    def handle_dfa(self, data):
         try:
             input_string = data.get('inputString', '')
             
@@ -86,11 +86,11 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
                 'success': True, 
                 'message': f"DFA processed successfully. String {'accepted' if result['accepted'] else 'rejected'}.",
                 'path': result['html_path'],
-                'accepted': result['accepted']
-            }
+                'accepted': result['accepted']            }
         except Exception as e:
             return {'success': False, 'message': f"Error processing DFA: {str(e)}"}
-      def handle_nfa(self, data):
+    
+    def handle_nfa(self, data):
         try:
             input_string = data.get('inputString', '')
             
@@ -130,7 +130,7 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
             }
         except Exception as e:
             return {'success': False, 'message': f"Error processing NFA: {str(e)}"}
-      def handle_regex(self, data):
+    def handle_regex(self, data):
         try:
             pattern = data.get('pattern', '')
             input_string = data.get('inputString', '')
@@ -198,10 +198,10 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
             temp.write('#\n')
             # Write initial state (q0)
             temp.write(manual_data['initial'] + '#\n')
-            # Write accepting states (F)
-            temp.write(manual_data['accepting'] + '#\n')
+            # Write accepting states (F)            temp.write(manual_data['accepting'] + '#\n')
             
             return temp.name
+
 
 def open_browser():
     """Open browser after short delay"""
