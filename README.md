@@ -1,155 +1,112 @@
-# DFA/NFA Visualization and Simulation Project
+# DFA/NFA/Regex Visualization and Simulation Project
 
 ## Description
 
-This project provides tools for defining, simulating, and visualizing Deterministic Finite Automata (DFA) and Nondeterministic Finite Automata (NFA). It can take automaton definitions from text files or interactive input, simulate their behavior on input strings, and generate animated HTML visualizations of the process. The DFA visualization also includes a table showing the binary encoding of each state.
+This project provides tools for defining, simulating, and visualizing Deterministic Finite Automata (DFA), Nondeterministic Finite Automata (NFA), and Regular Expressions (Regex). It can take automaton/regex definitions from text files or interactive input, simulate their behavior on input strings, and generate animated HTML visualizations of the process.
 
-## Features
+## Setup and Running Instructions
 
-*   **DFA and NFA Simulation:** Simulates the behavior of DFAs and NFAs on given input strings.
-*   **Interactive Input:** Allows defining automata interactively through the command line.
-*   **File Input:** Supports loading automaton definitions from `.txt` files.
-*   **Animated Visualization:** Generates HTML-based animations showing the step-by-step processing of an input string by the automaton.
-    *   Highlights the current state and active transitions.
-    *   Shows the remaining input string.
-    *   Indicates whether the string is accepted or rejected.
-*   **State Encoding Table (DFA):** Displays a table mapping original state names to their binary encoded representations in the DFA visualization.
-*   **NFA to DFA Conversion (Implied by `nfa_to_dfa_video_frames` folder):** The project structure suggests functionality for NFA to DFA conversion and its visualization. *(Please update this section if this feature is fully implemented and how to use it).*
-*   **Regex Simulation (Implied by `regex.py` and `regex_sim_output` folder):** The project structure suggests functionality for regular expression simulation. *(Please update this section if this feature is fully implemented and how to use it).*
+### 1. Prerequisites
+*   **Python 3.x:** Download from [python.org](https://www.python.org/).
+*   **Graphviz (for visualizations):**
+    *   **System Installation:** Download and install Graphviz from [graphviz.org/download/](https://graphviz.org/download/).
+    *   **Add to PATH:** After installation, add the Graphviz `bin` directory to your system's PATH environment variable. This is crucial for the `dot` command to be accessible by the Python `graphviz` library.
+        *   **Windows:** Search for "environment variables", click "Edit the system environment variables", then "Environment Variables...". Under "System variables", find "Path", select it, click "Edit...", "New", and add the path to your Graphviz `bin` folder (e.g., `C:\\\\Program Files\\\\Graphviz\\\\bin`).
+        *   **macOS/Linux:** Edit your shell's configuration file (e.g., `.bashrc`, `.zshrc`) to add `export PATH="/path/to/graphviz/bin:$PATH"`. Replace `/path/to/graphviz/bin` with the actual path.
 
-## File Structure
-
-```
-.
-├── dfa.py                  # Core logic for DFA simulation and visualization
-├── nfa.py                  # Core logic for NFA simulation and visualization (Assumed)
-├── regex.py                # Logic for Regex simulation (Assumed)
-├── dfa_input.txt           # Example input file for DFA definition
-├── nfa_input.txt           # Example input file for NFA definition (Assumed)
-├── dfa_video_frames/       # Output directory for DFA HTML visualizations
-│   └── index.html
-├── nfa_to_dfa_video_frames/ # Output directory for NFA to DFA conversion visualizations (Assumed)
-│   └── index.html
-├── regex_sim_output/       # Output directory for Regex simulation visualizations (Assumed)
-│   └── ...
-└── README.md               # This file
+### 2. Clone the Repository (Optional)
+If you haven't already, clone the project repository:
+```bash
+git clone <repository_url>
+cd <repository_directory>
 ```
 
-## Input File Format
+### 3. Set up a Virtual Environment (Recommended)
+```bash
+python -m venv venv
+# On Windows
+venv\\\\Scripts\\\\activate
+# On macOS/Linux
+source venv/bin/activate
+```
 
-The input files (e.g., `dfa_input.txt`) for defining automata follow this structure. Each section ends with a `#` character. Comments can be added using `//` at the beginning of a line.
+### 4. Install Dependencies
+Install the required Python libraries, including `graphviz` (Python wrapper) and `Flask` (for the server), by running:
+```bash
+pip install -r requirements.txt
+```
+If `requirements.txt` is not present or exhaustive, you might need to install key packages manually:
+```bash
+pip install graphviz flask
+```
 
-1.  **States (Q):** Comma-separated list of state names.
-    *   Example: `q0,q1,q2,q3#`
-2.  **Alphabet (Σ):** Comma-separated list of input symbols.
-    *   Example: `0,1#`
-3.  **Transitions (δ):** Each transition on a new line in the format `current_state,input_symbol=new_state`.
-    *   Example:
-        ```
-        q0,0=q1
-        q0,1=q0
-        q1,0=q2
-        q1,1=q0#
-        ```
-4.  **Initial State (q0):** A single state name.
-    *   Example: `q0#`
-5.  **Accepting States (F):** Comma-separated list of accepting state names.
-    *   Example: `q2#`
+### 5. Running the Scripts
 
-## How to Run
-
-### DFA Simulation and Visualization
-
-1.  Ensure Python and Graphviz are installed.
-2.  Prepare your DFA definition in a file (e.g., `dfa_input.txt`) or be ready to input it interactively.
-3.  Run the `dfa.py` script:
-    ```bash
-    python dfa.py
+*   **DFA Simulation & Visualization:**
+    ```powershell
+    python dfa.py <optional_dfa_input_file.txt> <optional_input_string>
     ```
-    The script will use `dfa_input.txt` by default (if `filename='dfa_input.txt'` is set in the main execution block) and process a predefined input string (e.g., `'10101'`).
-4.  The HTML visualization will be saved in the `dfa_video_frames/` directory (or as specified in the script). Open `index.html` in a web browser to view the animation.
+    Defaults to `dfa_input.txt` and string `'10101'`. Output: `dfa_video_frames/index.html`.
 
-*(Add similar instructions for `nfa.py` and `regex.py` once their usage is finalized.)*
+*   **NFA Simulation & Visualization (and NFA to DFA conversion):**
+    ```powershell
+    python nfa.py <optional_nfa_input_file.txt> <optional_input_string>
+    ```
+    Defaults to `nfa_input.txt` and a predefined string. Outputs: `nfa_simulation_output/index.html` (simulation) and `nfa_to_dfa_video_frames/index.html` (conversion).
 
-## Dependencies
+*   **Regex Simulation & Visualization:**
+    ```powershell
+    python regex.py "<your_regex_pattern>" "<your_input_string>" <optional_test_name>
+    ```
+    Example: `python regex.py "(a|b)*abb" "aabbabb" test_run`
+    Output: `regex_sim_output/<test_name>/index.html`.
 
-*   **Python 3.x**
-*   **Graphviz:**
-    *   **Python Package:** The `graphviz` Python library:
-        ```powershell
-        pip install -r requirements.txt
-        ```
-        or
-        ```powershell
-        pip install graphviz==0.20.1
-        ```
-    *   **System Installation (REQUIRED):** The Graphviz system installation is required for the `dot` executable:
-        1. Download from [graphviz.org](https://graphviz.org/download/) 
-        2. For Windows:
-           - Use the [Windows installer](https://graphviz.org/download/#windows)
-           - **IMPORTANT:** During installation, select the option to add Graphviz to your system PATH
-           - After installation, restart your terminal/command prompt
-        3. Verify installation by running:
-           ```powershell
-           dot -V
-           ```
-           This should show the Graphviz version information
+*   **Running the Web Server:**
+    ```powershell
+    python server.py
+    ```
+    Starts a Flask server, typically at `http://127.0.0.1:5000`.
 
-## Output
+## Project Overview
 
-The primary output is an HTML file (`index.html`) containing an animated SVG visualization of the automaton processing an input string. This file is typically saved in a directory like `dfa_video_frames/`.
+### Core Concepts
+*   **DFA (Deterministic Finite Automaton):** A state machine where each state has exactly one transition for each input symbol.
+*   **NFA (Nondeterministic Finite Automaton):** A state machine that can have multiple transitions for an input symbol or transitions on an empty string (epsilon).
+*   **Regex (Regular Expression):** A sequence of characters defining a search pattern, often visualized by conversion to an NFA/DFA.
 
-## Web Interface
+### Key Features
+*   Simulation of DFAs, NFAs, and Regex.
+*   Interactive command-line input or file-based definitions.
+*   Animated HTML/SVG visualizations of step-by-step processing.
+*   NFA to DFA conversion and visualization.
+*   A web interface (`server.py`) for easier interaction.
+*   DFA visualizations include a state-to-binary encoding table.
 
-The project includes a web-based user interface that allows you to:
-1. Input DFA, NFA, or Regex definitions (either through files or manual input)
-2. Process input strings
-3. View the resulting visualizations
+### Input File Format for Automata
+Automata definitions (e.g., `dfa_input.txt`) use sections ending with `#`:
+1.  **States (Q):** `q0,q1,q2#`
+2.  **Alphabet (Σ):** `0,1#`
+3.  **Transitions (δ):** `current_state,input_symbol=new_state` (one per line, section ends with `#`)
+4.  **Initial State (q0):** `q0#`
+5.  **Accepting States (F):** `q2#`
+Comments can be added using `//` at the start of a line.
 
-### Starting the Web Interface
+### Output
+The scripts primarily generate `index.html` files within specific directories (e.g., `dfa_video_frames/`, `nfa_to_dfa_video_frames/`, `regex_sim_output/`). These files contain the animated SVG visualizations.
 
-1. Ensure you have all dependencies installed:
-   - Python 3.x
-   - Graphviz (system installation with PATH configuration)
-   - Required Python packages (`pip install -r requirements.txt`)
-
-2. Open a terminal (PowerShell or Command Prompt) and navigate to the project directory:
-   ```
-   cd "C:\path\to\project\folder"
-   ```
-
-3. Start the server by running:
-   ```
-   python server.py
-   ```
-
-4. The server will start on port 8000. Open a browser and go to:
-   ```
-   http://localhost:8000/
-   ```
-
-5. Use the tabs to switch between DFA, NFA, and Regex input modes.
-
-6. After submitting your input, click "View Visualization" to see the result.
-
-### Troubleshooting
-
-If you encounter issues with Graphviz:
-
-1. Ensure Graphviz is installed from [graphviz.org/download](https://graphviz.org/download/)
-2. During installation, select the option to add Graphviz to your system PATH
-3. After installation, **restart your terminal** (important!)
-4. Verify the installation by running:
-   ```
-   dot -V
-   ```
-   This should show the Graphviz version information
-
-5. If Graphviz is installed but not in your PATH, you'll need to add it manually:
-   - Find where Graphviz is installed (typically `C:\Program Files\Graphviz\bin`)
-   - Add this location to your system PATH environment variable
-   - Restart your terminal and try again
+### File Structure
+\`\`\`
+.
+├── dfa.py                  # DFA logic
+├── nfa.py                  # NFA logic (incl. conversion)
+├── regex.py                # Regex logic
+├── server.py               # Web server (Flask)
+├── requirements.txt        # Dependencies
+├── *.txt                   # Example input files
+├── */index.html            # Output visualization files
+└── README.md               # This file
+\`\`\`
 
 ---
 
-*This README is based on the observed project structure and functionality. Please update it with more specific details as the project evolves.*
+*This README provides a general overview. Refer to individual script comments or code for more specific details.*
