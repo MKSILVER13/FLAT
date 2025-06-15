@@ -1,4 +1,5 @@
 import math  # Add math import for ceil and log2 if needed, or use bit_length
+import sys # Add sys import for command-line arguments
 
 class DFA:
     def __init__(self, dfa=None, filename=None):
@@ -426,7 +427,20 @@ class DFA:
         return {'html_path': index_path, 'accepted': accepted, 'path': self.ids} # self.ids contains original state names
 
 
-__main__ = '__main__'
 if __name__ == '__main__':
-    dfa = DFA(filename='dfa_input.txt')
-    dfa.visualization_video('10101', index_dir='dfa_video_frames')
+    if len(sys.argv) == 3:
+        filename = sys.argv[1]
+        input_string = sys.argv[2]
+        dfa = DFA(filename=filename)
+        dfa.visualization_video(input_string, index_dir='dfa_video_frames')
+    elif len(sys.argv) == 2:
+        input_string = sys.argv[1]
+        dfa = DFA(filename='dfa_input.txt')
+        dfa.visualization_video(input_string, index_dir='dfa_video_frames')
+    elif len(sys.argv) == 1:
+        # Default behavior if no arguments are provided
+        dfa = DFA(filename='dfa_input.txt')
+        dfa.visualization_video('10101', index_dir='dfa_video_frames')
+    else:
+        print("Usage: python dfa.py <filename> <input_string>")
+        print("Or: python dfa.py (to use default dfa_input.txt and string '10101')")

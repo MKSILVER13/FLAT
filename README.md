@@ -82,6 +82,24 @@ The input files (e.g., `dfa_input.txt`) for defining automata follow this struct
 
 The primary output is an HTML file (`index.html`) containing an animated SVG visualization of the automaton processing an input string. This file is typically saved in a directory like `dfa_video_frames/`.
 
+## Web Interface
+
+The project includes a web-based user interface that allows you to:
+1. Input DFA, NFA, or Regex definitions (either through files or manual input)
+2. Process input strings
+3. View the resulting visualizations
+
+### Starting the Web Interface
+
+1. Ensure you have all dependencies installed.
+2. Double-click `start_server.bat` or run:
+   ```bash
+   python server.py
+   ```
+3. The server will start and automatically open a browser window to http://localhost:8000/
+4. Use the tabs to switch between DFA, NFA, and Regex input modes.
+5. After submitting your input, click "View Visualization" to see the result.
+
 ---
 
 *This README is based on the observed project structure and functionality. Please update it with more specific details as the project evolves.*

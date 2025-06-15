@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFA/NFA/Regex Visualization Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            background-color: #f8f9fa;
+            margin-right: 5px;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background-color: #4caf50;
+            color: white;
+            border-color: #ddd;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .help-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            display: none;
+        }
+        .view-btn {
+            margin-top: 15px;
+            background-color: #2196F3;
+        }
+        .view-btn:hover {
+            background-color: #0b7dda;
+        }
+        .manual-input {
+            display: none;
+        }
+        .radio-group {
+            margin-bottom: 15px;
+        }
+        .radio-label {
+            display: inline-block;
+            margin-right: 15px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Automata Visualization Tool</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="dfa">DFA</div>
+            <div class="tab" data-tab="nfa">NFA</div>
+            <div class="tab" data-tab="regex">Regex</div>
+        </div>
+        
+        <!-- DFA Tab -->
+        <div id="dfa-tab" class="tab-content active">
+            <h2>DFA Input</h2>
+            
+            <div class="radio-group">
+                <label>Input Method:</label>
+                <label class="radio-label">
+                    <input type="radio" name="dfa-input-method" value="file" checked> File Input
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="dfa-input-method" value="manual"> Manual Input
+                </label>
+            </div>
+            
+            <div id="dfa-file-input">
+                <div class="form-group">
+                    <label for="dfa-file">File with DFA definition:</label>
+                    <input type="file" id="dfa-file" accept=".txt">
+                    <div class="help-text">Default: dfa_input.txt</div>
+                </div>
+            </div>
+            
+            <div id="dfa-manual-input" class="manual-input">
+                <div class="form-group">
+                    <label for="dfa-states">States (Q):</label>
+                    <input type="text" id="dfa-states" placeholder="q0,q1,q2,q3">
+                    <div class="help-text">Comma-separated list of states</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dfa-alphabet">Alphabet (Σ):</label>
+                    <input type="text" id="dfa-alphabet" placeholder="0,1">
+                    <div class="help-text">Comma-separated list of symbols</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dfa-transitions">Transitions (δ):</label>
+                    <textarea id="dfa-transitions" rows="5" placeholder="q0,0=q1
+q0,1=q0
+q1,0=q2
+q1,1=q0"></textarea>
+                    <div class="help-text">Format: current_state,input_symbol=new_state (one per line)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dfa-initial">Initial State (q0):</label>
+                    <input type="text" id="dfa-initial" placeholder="q0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dfa-accepting">Accepting States (F):</label>
+                    <input type="text" id="dfa-accepting" placeholder="q2">
+                    <div class="help-text">Comma-separated list of accepting states</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="dfa-input-string">Input String:</label>
+                <input type="text" id="dfa-input-string" placeholder="10101">
+                <div class="help-text">The string to process through the DFA</div>
+            </div>
+            
+            <button id="dfa-submit">Process DFA</button>
+            
+            <div id="dfa-result" class="result">
+                <h3>Result:</h3>
+                <p id="dfa-result-text"></p>
+                <button id="dfa-view" class="view-btn">View Visualization</button>
+            </div>
+        </div>
+        
+        <!-- NFA Tab -->
+        <div id="nfa-tab" class="tab-content">
+            <h2>NFA Input</h2>
+            
+            <div class="radio-group">
+                <label>Input Method:</label>
+                <label class="radio-label">
+                    <input type="radio" name="nfa-input-method" value="file" checked> File Input
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="nfa-input-method" value="manual"> Manual Input
+                </label>
+            </div>
+            
+            <div id="nfa-file-input">
+                <div class="form-group">
+                    <label for="nfa-file">File with NFA definition:</label>
+                    <input type="file" id="nfa-file" accept=".txt">
+                    <div class="help-text">Default: nfa_input.txt</div>
+                </div>
+            </div>
+            
+            <div id="nfa-manual-input" class="manual-input">
+                <div class="form-group">
+                    <label for="nfa-states">States (Q):</label>
+                    <input type="text" id="nfa-states" placeholder="q0,q1,q2,q3">
+                    <div class="help-text">Comma-separated list of states</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nfa-alphabet">Alphabet (Σ):</label>
+                    <input type="text" id="nfa-alphabet" placeholder="0,1,ε">
+                    <div class="help-text">Comma-separated list of symbols, use ε for epsilon</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nfa-transitions">Transitions (δ):</label>
+                    <textarea id="nfa-transitions" rows="5" placeholder="q0,0=q1
+q0,1=q0
+q0,ε=q2
+q1,0=q1,q2"></textarea>
+                    <div class="help-text">Format: current_state,input_symbol=new_state1,new_state2 (one per line)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nfa-initial">Initial State (q0):</label>
+                    <input type="text" id="nfa-initial" placeholder="q0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="nfa-accepting">Accepting States (F):</label>
+                    <input type="text" id="nfa-accepting" placeholder="q2,q3">
+                    <div class="help-text">Comma-separated list of accepting states</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="nfa-input-string">Input String:</label>
+                <input type="text" id="nfa-input-string" placeholder="101">
+                <div class="help-text">The string to process through the NFA</div>
+            </div>
+            
+            <button id="nfa-submit">Process NFA</button>
+            
+            <div id="nfa-result" class="result">
+                <h3>Result:</h3>
+                <p id="nfa-result-text"></p>
+                <button id="nfa-view" class="view-btn">View Visualization</button>
+            </div>
+        </div>
+        
+        <!-- Regex Tab -->
+        <div id="regex-tab" class="tab-content">
+            <h2>Regular Expression Input</h2>
+            
+            <div class="form-group">
+                <label for="regex-pattern">Regular Expression Pattern:</label>
+                <input type="text" id="regex-pattern" placeholder="a(b|c)*d">
+                <div class="help-text">
+                    Use standard regex notation: a for character a, a|b for a or b, a* for 0 or more a's, 
+                    (ab) for grouping, ε for epsilon (empty string)
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="regex-input-string">Input String:</label>
+                <input type="text" id="regex-input-string" placeholder="abcd">
+                <div class="help-text">The string to check against the regex</div>
+            </div>
+            
+            <button id="regex-submit">Process Regex</button>
+            
+            <div id="regex-result" class="result">
+                <h3>Result:</h3>
+                <p id="regex-result-text"></p>
+                <button id="regex-view" class="view-btn">View Visualization</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all tabs
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Activate selected tab
+                tab.classList.add('active');
+                const tabId = `${tab.getAttribute('data-tab')}-tab`;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Toggle input method (file/manual)
+        ['dfa', 'nfa'].forEach(type => {
+            document.querySelectorAll(`input[name="${type}-input-method"]`).forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'file') {
+                        document.getElementById(`${type}-file-input`).style.display = 'block';
+                        document.getElementById(`${type}-manual-input`).style.display = 'none';
+                    } else {
+                        document.getElementById(`${type}-file-input`).style.display = 'none';
+                        document.getElementById(`${type}-manual-input`).style.display = 'block';
+                    }
+                });
+            });
+        });
+        
+        // Process button handlers
+        document.getElementById('dfa-submit').addEventListener('click', function() {
+            processDFA();
+        });
+        
+        document.getElementById('nfa-submit').addEventListener('click', function() {
+            processNFA();
+        });
+        
+        document.getElementById('regex-submit').addEventListener('click', function() {
+            processRegex();
+        });
+        
+        // View button handlers
+        document.getElementById('dfa-view').addEventListener('click', function() {
+            viewVisualization('dfa');
+        });
+        
+        document.getElementById('nfa-view').addEventListener('click', function() {
+            viewVisualization('nfa');
+        });
+        
+        document.getElementById('regex-view').addEventListener('click', function() {
+            viewVisualization('regex');
+        });
+        
+        // Global variables to store results
+        let dfaResult = null;
+        let nfaResult = null;
+        let regexResult = null;
+        
+        // Process DFA
+        function processDFA() {
+            const inputMethod = document.querySelector('input[name="dfa-input-method"]:checked').value;
+            const inputString = document.getElementById('dfa-input-string').value.trim();
+            
+            let dfaData = {};
+            
+            if (inputMethod === 'file') {
+                const fileInput = document.getElementById('dfa-file');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    dfaData.filename = file.name;
+                } else {
+                    dfaData.filename = 'dfa_input.txt';
+                }
+            } else {
+                // Manual input
+                dfaData.manual = {
+                    states: document.getElementById('dfa-states').value.trim(),
+                    alphabet: document.getElementById('dfa-alphabet').value.trim(),
+                    transitions: document.getElementById('dfa-transitions').value.trim(),
+                    initial: document.getElementById('dfa-initial').value.trim(),
+                    accepting: document.getElementById('dfa-accepting').value.trim()
+                };
+            }
+            
+            dfaData.inputString = inputString;
+            
+            // Send data to backend (simulated here)
+            simulateBackendCall(dfaData, 'dfa');
+        }
+        
+        // Process NFA
+        function processNFA() {
+            const inputMethod = document.querySelector('input[name="nfa-input-method"]:checked').value;
+            const inputString = document.getElementById('nfa-input-string').value.trim();
+            
+            let nfaData = {};
+            
+            if (inputMethod === 'file') {
+                const fileInput = document.getElementById('nfa-file');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    nfaData.filename = file.name;
+                } else {
+                    nfaData.filename = 'nfa_input.txt';
+                }
+            } else {
+                // Manual input
+                nfaData.manual = {
+                    states: document.getElementById('nfa-states').value.trim(),
+                    alphabet: document.getElementById('nfa-alphabet').value.trim(),
+                    transitions: document.getElementById('nfa-transitions').value.trim(),
+                    initial: document.getElementById('nfa-initial').value.trim(),
+                    accepting: document.getElementById('nfa-accepting').value.trim()
+                };
+            }
+            
+            nfaData.inputString = inputString;
+            
+            // Send data to backend (simulated here)
+            simulateBackendCall(nfaData, 'nfa');
+        }
+        
+        // Process Regex
+        function processRegex() {
+            const pattern = document.getElementById('regex-pattern').value.trim();
+            const inputString = document.getElementById('regex-input-string').value.trim();
+            
+            let regexData = {
+                pattern: pattern,
+                inputString: inputString
+            };
+            
+            // Send data to backend (simulated here)
+            simulateBackendCall(regexData, 'regex');
+        }
+          // Call backend API
+        function simulateBackendCall(data, type) {
+            // Show loading message
+            document.getElementById(`${type}-result-text`).textContent = "Processing... Please wait.";
+            document.getElementById(`${type}-result`).style.display = 'block';
+            document.getElementById(`${type}-view`).style.display = 'none';
+            
+            // Determine endpoint based on type
+            let endpoint;
+            switch(type) {
+                case 'dfa':
+                    endpoint = '/api/process_dfa';
+                    break;
+                case 'nfa':
+                    endpoint = '/api/process_nfa';
+                    break;
+                case 'regex':
+                    endpoint = '/api/process_regex';
+                    break;
+            }
+            
+            // Make API call to the Python server
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                
+                // Update result section
+                document.getElementById(`${type}-result-text`).textContent = data.message;
+                document.getElementById(`${type}-view`).style.display = 'block';
+                
+                // Store result for view button
+                switch(type) {
+                    case 'dfa':
+                        dfaResult = { path: data.path };
+                        break;
+                    case 'nfa':
+                        nfaResult = { path: data.path };
+                        break;
+                    case 'regex':
+                        regexResult = { path: data.path };
+                        break;
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById(`${type}-result-text`).textContent = 
+                    "An error occurred while processing. Check the console for details.";
+            });
+        }
+        
+        // View visualization
+        function viewVisualization(type) {
+            let path;
+            
+            switch(type) {
+                case 'dfa':
+                    path = dfaResult?.path || 'dfa_video_frames/index.html';
+                    break;
+                case 'nfa':
+                    path = nfaResult?.path || 'nfa_to_dfa_video_frames/index.html';
+                    break;
+                case 'regex':
+                    path = regexResult?.path || 'regex_sim_output/test_1_default_test_name/index.html';
+                    break;
+            }
+            
+            // Open the visualization
+            window.open(path, '_blank');
+        }
+    </script>
+</body>
+</html>

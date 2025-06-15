@@ -2,6 +2,7 @@
 from nfa import NFA
 from dfa import DFA
 import re # Ensure 're' is imported
+import sys # Add sys import for command-line arguments
 
 class RegExp:
     def __init__(self, pattern):
@@ -221,60 +222,50 @@ class RegExp:
         )
 
 if __name__ == '__main__':
-    # Test cases
-    tests = [
-        ("a", "a", "Simple char"),
-        ("ab", "ab", "Concatenation"),
-        ("a.b", "ab", "Explicit concatenation"),
-        ("a|b", "a", "Union, match a"),
-        ("a|b", "b", "Union, match b"),
-        ("a*", "", "Kleene star, empty string"),
-        ("a*", "a", "Kleene star, one a"),
-        ("a*", "aaa", "Kleene star, multiple a's"),
-        ("(a|b)*", "ababa", "Grouped union with star"),
-        ("(a|b)*abb", "aabb", "Complex: (a|b)*abb"),
-        ("(a|b)*abb", "abb", "Complex: (a|b)*abb, shorter match"),
-        ("a(b|c)*d", "ad", "Complex: a(b|c)*d, no middle"),
-        ("a(b|c)*d", "abd", "Complex: a(b|c)*d, one b"),
-        ("a(b|c)*d", "acd", "Complex: a(b|c)*d, one c"),
-        ("a(b|c)*d", "abccbd", "Complex: a(b|c)*d, multiple middle"),
-        ("a(b|c)*d", "ac", "Complex: a(b|c)*d, non-match (incomplete)"),
-        ("ε", "", "Epsilon regex"),
-        ("a|ε", "a", "Char or Epsilon, match char"),
-        ("a|ε", "", "Char or Epsilon, match epsilon"),
-        ("aεb", "ab", "Concat with epsilon (should be like ab)"),
-    ]
+    if len(sys.argv) == 3:
+        regex_str = sys.argv[1]
+        test_input = sys.argv[2]
+        description = f"Regex: {regex_str}, Input: {test_input}"
+    elif len(sys.argv) == 2:
+        regex_str = sys.argv[1]
+        test_input = "" # Default input string if only regex is provided
+        description = f"Regex: {regex_str}, Input: (empty)"
+    elif len(sys.argv) == 1:
+        # Default behavior if no arguments are provided
+        regex_str = "a|b" # Default regex
+        test_input = ""    # Default input string
+        description = "Default Regex: a|b, Input: (empty)"
+    else:
+        print("Usage: python regex.py <regex_pattern> <input_string>")
+        print("Or: python regex.py <regex_pattern> (uses empty string for input)")
+        print("Or: python regex.py (uses default pattern 'a|b' and empty string for input)")
+        sys.exit(1)
 
-    for i, (regex_str, test_input, description) in enumerate(tests):
-        print(f"--- Test Case {i+1}: {description} ---")
-        print(f"Regex: '{regex_str}', Input: '{test_input}'")
-        try:
-            rgx = RegExp(regex_str)
-            
-            # Sanitize description for directory name
-            # Replace any character that is not a word character, a period, or a hyphen with an underscore
-            sanitized_description = re.sub(r'[^\\w.-]', '_', description)
-            # Strip leading/trailing underscores, periods, or hyphens that might result from substitution
-            sanitized_description = sanitized_description.strip('_.-') 
-            # Limit length to avoid overly long paths
-            if len(sanitized_description) > 50:
-                sanitized_description = sanitized_description[:50]
-            # Ensure it's not empty after sanitization, provide a default if it is
-            if not sanitized_description:
-                sanitized_description = "default_test_name"
+    print(f"--- Custom Run ---")
+    print(f"Regex: '{regex_str}', Input: '{test_input}'")
+    try:
+        rgx = RegExp(regex_str)
+        
+        # Sanitize description for directory name
+        sanitized_description = re.sub(r'[^\\w.-]', '_', description)
+        sanitized_description = sanitized_description.strip('_.-') 
+        if len(sanitized_description) > 50:
+            sanitized_description = sanitized_description[:50]
+        if not sanitized_description:
+            sanitized_description = "custom_run"
 
-            output_dir = f'regex_sim_output/test_{i+1}_{sanitized_description}'
-            
-            result = rgx.visualize_dfa(test_input, index_dir=output_dir)
-            if result:
-                print(f"  Input '{test_input}' accepted: {result['accepted']}")
-                print(f"  Visualization HTML: {result['html_path']}")
-            else:
-                print(f"  Visualization failed or did not return result for {regex_str} with input {test_input}")
-        except ValueError as e:
-            print(f"  Error processing regex '{regex_str}': {e}")
-        except Exception as e:
-            import traceback
-            print(f"  An unexpected error occurred processing regex '{regex_str}': {e}")
-            print(traceback.format_exc())
-        print("--- End Test Case ---")
+        output_dir = f'regex_sim_output/run_{sanitized_description}'
+        
+        result = rgx.visualize_dfa(test_input, index_dir=output_dir)
+        if result:
+            print(f"  Input '{test_input}' accepted: {result['accepted']}")
+            print(f"  Visualization HTML: {result['html_path']}")
+        else:
+            print(f"  Visualization failed or did not return result for {regex_str} with input {test_input}")
+    except ValueError as e:
+        print(f"  Error processing regex '{regex_str}': {e}")
+    except Exception as e:
+        import traceback
+        print(f"  An unexpected error occurred processing regex '{regex_str}': {e}")
+        print(traceback.format_exc())
+    print("--- End Custom Run ---")

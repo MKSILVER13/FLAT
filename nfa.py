@@ -2,6 +2,7 @@
 nfa.py: Non-deterministic Finite Automaton implementation.
 """
 from dfa import DFA # Import DFA class
+import sys # Add sys import for command-line arguments
 
 class NFA(DFA): # Inherit from DFA
     def __init__(self, nfa=None, filename=None):
@@ -292,10 +293,28 @@ class NFA(DFA): # Inherit from DFA
 
 __main__ = '__main__'
 if __name__ == '__main__':
-    nfa = NFA(filename="nfa_input.txt")
-    nfa.print_nfa()
-    # Example of visualizing the DFA equivalent
-    visualization_result = nfa.visualize_dfa_equivalent("101", index_dir='nfa_to_dfa_video_frames')
+    if len(sys.argv) == 3:
+        filename = sys.argv[1]
+        input_string = sys.argv[2]
+        nfa = NFA(filename=filename)
+        # nfa.print_nfa() # Optional: for debugging
+        visualization_result = nfa.visualize_dfa_equivalent(input_string, index_dir='nfa_to_dfa_video_frames')
+    elif len(sys.argv) == 2:
+        input_string = sys.argv[1]
+        nfa = NFA(filename="nfa_input.txt") # Default filename
+        # nfa.print_nfa() # Optional: for debugging
+        visualization_result = nfa.visualize_dfa_equivalent(input_string, index_dir='nfa_to_dfa_video_frames')
+    elif len(sys.argv) == 1:
+        # Default behavior if no arguments are provided
+        nfa = NFA(filename="nfa_input.txt")
+        # nfa.print_nfa() # Optional: for debugging
+        visualization_result = nfa.visualize_dfa_equivalent("101", index_dir='nfa_to_dfa_video_frames') # Default input string
+    else:
+        print("Usage: python nfa.py <filename> <input_string>")
+        print("Or: python nfa.py <input_string> (uses default nfa_input.txt)")
+        print("Or: python nfa.py (uses default nfa_input.txt and string '101')")
+        visualization_result = None
+
     if visualization_result:
         print(f"Visualization HTML (DFA equivalent) generated at: {visualization_result['html_path']}")
         print(f"Input string accepted (DFA equivalent): {visualization_result['accepted']}")

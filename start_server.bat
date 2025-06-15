@@ -1,0 +1,3 @@
+@echo off
+echo Starting Automata Visualization Server...
+python server.py
