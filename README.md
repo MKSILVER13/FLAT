@@ -75,8 +75,25 @@ The input files (e.g., `dfa_input.txt`) for defining automata follow this struct
 
 *   **Python 3.x**
 *   **Graphviz:**
-    *   The `graphviz` Python library (`pip install graphviz`).
-    *   Graphviz system installation (required for the `dot` command). Download from [graphviz.org](https://graphviz.org/download/). Ensure `dot` is in your system's PATH.
+    *   **Python Package:** The `graphviz` Python library:
+        ```powershell
+        pip install -r requirements.txt
+        ```
+        or
+        ```powershell
+        pip install graphviz==0.20.1
+        ```
+    *   **System Installation (REQUIRED):** The Graphviz system installation is required for the `dot` executable:
+        1. Download from [graphviz.org](https://graphviz.org/download/) 
+        2. For Windows:
+           - Use the [Windows installer](https://graphviz.org/download/#windows)
+           - **IMPORTANT:** During installation, select the option to add Graphviz to your system PATH
+           - After installation, restart your terminal/command prompt
+        3. Verify installation by running:
+           ```powershell
+           dot -V
+           ```
+           This should show the Graphviz version information
 
 ## Output
 

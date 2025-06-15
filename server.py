@@ -50,8 +50,7 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
         
         # Send response content
         self.wfile.write(json.dumps(response).encode('utf-8'))
-    
-    def handle_dfa(self, data):
+      def handle_dfa(self, data):
         try:
             input_string = data.get('inputString', '')
             
@@ -73,8 +72,16 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return {'success': False, 'message': 'No DFA definition provided'}
             
             # Process the DFA
-            result = dfa.visualization_video(input_string, index_dir='dfa_video_frames')
-            
+            try:
+                result = dfa.visualization_video(input_string, index_dir='dfa_video_frames')
+            except FileNotFoundError as e:
+                if 'dot' in str(e) or 'Graphviz' in str(e):
+                    return {
+                        'success': False,
+                        'message': "Graphviz not found. Please install Graphviz and make sure it's in your PATH. See README for installation instructions."
+                    }
+                raise
+                
             return {
                 'success': True, 
                 'message': f"DFA processed successfully. String {'accepted' if result['accepted'] else 'rejected'}.",
@@ -83,8 +90,7 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
             }
         except Exception as e:
             return {'success': False, 'message': f"Error processing DFA: {str(e)}"}
-    
-    def handle_nfa(self, data):
+      def handle_nfa(self, data):
         try:
             input_string = data.get('inputString', '')
             
@@ -106,8 +112,16 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return {'success': False, 'message': 'No NFA definition provided'}
             
             # Process the NFA
-            result = nfa.visualize_dfa_equivalent(input_string, index_dir='nfa_to_dfa_video_frames')
-            
+            try:
+                result = nfa.visualize_dfa_equivalent(input_string, index_dir='nfa_to_dfa_video_frames')
+            except FileNotFoundError as e:
+                if 'dot' in str(e) or 'Graphviz' in str(e):
+                    return {
+                        'success': False,
+                        'message': "Graphviz not found. Please install Graphviz and make sure it's in your PATH. See README for installation instructions."
+                    }
+                raise
+                
             return {
                 'success': True, 
                 'message': f"NFA processed successfully. String {'accepted' if result['accepted'] else 'rejected'}.",
@@ -116,8 +130,7 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
             }
         except Exception as e:
             return {'success': False, 'message': f"Error processing NFA: {str(e)}"}
-    
-    def handle_regex(self, data):
+      def handle_regex(self, data):
         try:
             pattern = data.get('pattern', '')
             input_string = data.get('inputString', '')
@@ -132,7 +145,16 @@ class AutomataRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             # Process the regex
             regex = RegExp(pattern)
-            result = regex.visualize_dfa(input_string, index_dir=dir_name)
+            
+            try:
+                result = regex.visualize_dfa(input_string, index_dir=dir_name)
+            except FileNotFoundError as e:
+                if 'dot' in str(e) or 'Graphviz' in str(e):
+                    return {
+                        'success': False,
+                        'message': "Graphviz not found. Please install Graphviz and make sure it's in your PATH. See README for installation instructions."
+                    }
+                raise
             
             return {
                 'success': True, 
